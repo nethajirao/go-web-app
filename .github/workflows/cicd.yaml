@@ -1,3 +1,5 @@
+# CICD using GitHub actions
+
 name: CI/CD
 
 on:
@@ -13,15 +15,24 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.22.x, 1.21.x]   # 🔹 test both versions
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
 
-    - name: Set up Go 1.22
+    - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: 1.22
+        go-version: ${{ matrix.go-version }}
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: v1.60.3
+        skip-cache: true   # 🔹 force fresh run
 
     - name: Build
       run: go build -o go-web-app
@@ -31,23 +42,22 @@ jobs:
 
   code-quality:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v4
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
-        version: v1.60.3   # ✅ latest, supports Go 1.22
+        version: v1.60.3
+        skip-cache: true   # 🔹 no cache
 
   push:
     runs-on: ubuntu-latest
     needs: build
-
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
@@ -69,10 +79,9 @@ jobs:
   update-newtag-in-helm-chart:
     runs-on: ubuntu-latest
     needs: push
-
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v4
       with:
         token: ${{ secrets.TOKEN }}
 
