@@ -8,7 +8,7 @@ image:
   repository: nethajirao/go-web-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "18169330903"
+  tag: "18169387387"
 
 service:
   type: ClusterIP
